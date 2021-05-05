@@ -61,6 +61,21 @@ def plot_all_interactive():
 
             benchmarks[dataset_name] = benchmark_wbo_data
             
+    # get axis bounds
+    maxx = 0
+    maxy = 0
+    for benchmark_name, benchmark_data in benchmarks.items():
+        wbo0 = []
+        wbo1 = []
+        for smiles, data in benchmark_data.items():
+            wbo0.append(data[0][0]) #method0 wbo
+            wbo1.append(data[0][1]) #method1 wbo
+
+            mx = max(wbo0)
+            my = max(wbo1)
+            if mx > maxx: maxx = mx
+            if my > maxy: maxy = my
+
     
     figure = Figure(
                 tooltips = default_tooltip_template(),
@@ -69,18 +84,13 @@ def plot_all_interactive():
                 y_axis_label = method1,
                 plot_width = 1600,
                 plot_height = 800,
-                x_range = [.8,1.6],
-                y_range = [.8,1.6]
+                x_range = [0, maxx*1.1],
+                y_range = [0, maxy*1.1]
                 )
                 
-    figure.line(x = [.8,1.6],
-            y = [.8, 1.6])
+    figure.line(x = [0,maxx*1.1], y = [0, maxy*1.1])
             
     color_index = 0
-    maxx = 0
-    maxy = 0
-    minx = 100
-    miny = 100
     
     for benchmark_name, benchmark_data in benchmarks.items():
         mols = {}
@@ -94,15 +104,6 @@ def plot_all_interactive():
                 wbo0.append(data[0][0]) #method0 wbo
                 wbo1.append(data[0][1]) #method1 wbo
 
-            mx = max(wbo0)
-            my = max(wbo1)
-            if mx > maxx: maxx = mx
-            if my > maxy: maxy = my
-            mx = min(wbo0)
-            my = min(wbo1)
-            if mx < minx: minx = mx
-            if my < miny: miny = my
-            
             plotmol.scatter(figure,
                     x = wbo0,
                     y = wbo1,
@@ -119,8 +120,6 @@ def plot_all_interactive():
     figure.legend.click_policy = "hide"
     figure.add_layout(figure.legend[0], "right")
    
-    print(maxx, maxy)
-    print(minx, miny)
     #show(figure)
     output_file(f"All_Datasets_interactive.html")
     save(figure)
