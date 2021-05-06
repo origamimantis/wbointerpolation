@@ -42,7 +42,6 @@ def read_data(dataset_file_name):
     """
     
     with open(f"{pkldir}/{dataset_file_name}.pkl", "rb") as file:
-        print(dataset_file_name)
         return pickle.load(file)
         
 
@@ -92,17 +91,18 @@ def plot_all_interactive():
             
     color_index = 0
     
+    print("smiles", f"wbo {method0}", f"wbo {method1}", "torsion indices", "dataset")
     for benchmark_name, benchmark_data in benchmarks.items():
         mols = {}
         wbo0 = []
         wbo1 = []
-        print("BEANS", benchmark_name)
         if len(benchmark_data) > 0:
             for smiles, data in benchmark_data.items():
                 mols[smiles] = data[1] #Torsion indices
-                #mols[smiles] = data[0] #Torsion indices
                 wbo0.append(data[0][0]) #method0 wbo
                 wbo1.append(data[0][1]) #method1 wbo
+                if data[0][0] < 0.01 or data[0][1] < 0.01:
+                    print(smiles, data[0][0], data[0][1], data[1], benchmark_name)
 
             plotmol.scatter(figure,
                     x = wbo0,

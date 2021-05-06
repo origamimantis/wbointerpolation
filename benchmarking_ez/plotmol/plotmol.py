@@ -6,6 +6,8 @@ from bokeh.plotting import Figure
 
 from plotmol.utilities.rdkit import smiles_to_svg
 
+from plotmol.utilities import rdkit
+
 DataType = Union[float, int, str]
 Label = Dict[str, str]
 #Marker = Literal["x", "o"] Does not work with Python 3.9
@@ -71,14 +73,25 @@ def scatter(
     makevalid = lambda x: x if x.find('_') < 0 else x[:x.find('_')]
 
     # Generate an image for each SMILES pattern.
-    raw_images = [
-        base64.b64encode(smiles_to_svg(makevalid(smiles_pattern), torsion_indices).encode()).decode()
-        for smiles_pattern, torsion_indices in smiles.items()
-    ]
+    raw_images = []
+    xvalid = []
+    yvalid = []
+    smivalid = []
+    for (smiles_pattern, torsion_indices), x_, y_ in zip(smiles.items(), x, y):
+        try:
+            img = base64.b64encode(smiles_to_svg(makevalid(smiles_pattern), torsion_indices).encode()).decode()
+            raw_images.append(img)
+            xvalid.append(x_)
+            yvalid.append(y_)
+            smivalid.append(smiles_pattern)
+        except rdkit.Chem.rdchem.AtomValenceException:
+            print(f"AtomicValenceException for smiles {makevalid(smiles_pattern)} with torsions {torsion_indices}")
+            continue
+
     images = [f"data:image/svg+xml;base64,{raw_image}" for raw_image in raw_images]
 
     # Create a custom data source.
-    source = ColumnDataSource(data={"x": x, "y": y, "smiles": list(smiles.keys()), "image": images})
+    source = ColumnDataSource(data={"x": xvalid, "y": yvalid, "smiles": smivalid, "image": images})
 
     # Add the scatter data.
     scatter_kwargs = {**kwargs}
